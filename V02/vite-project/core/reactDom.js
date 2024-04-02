@@ -3,8 +3,8 @@ import React from './react.js'
 const reactDom = {
     createRoot(container) {
         return {
-            renden(APP) {
-                React.renden(APP, container)
+            render(APP) {
+                React.render(APP, container)
             }
         }
     }

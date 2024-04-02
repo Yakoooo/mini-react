@@ -1,45 +1,48 @@
-const createElement = (type, props, ...chilren) => {
-    return {
-        type: type,
-        props: {
-            ...props,
-            chilren: chilren.map((child) => {
-                return typeof child == 'string' ? createTextNode(child) : child
-            })
-        },
-    }
-}
+const createElement = (type, props, ...children) => {
+  return {
+    type: type,
+    props: {
+      ...props,
+      children: children.map((child) => {
+        return typeof child == "string" ? createTextNode(child) : child;
+      }),
+    },
+  };
+};
 const createTextNode = (text) => {
-    return {
-        type: 'TEXT_ELEMENT',
-        props: {
-            nodeValue: text,
-            chilren: []
-        },
+  return {
+    type: "TEXT_ELEMENT",
+    props: {
+      nodeValue: text,
+      children: [],
+    },
+  };
+};
+
+//利用render创建VDOm
+const render = (el, root) => {
+  const dom =
+    el.type == "TEXT_ELEMENT"
+      ? document.createTextNode("")
+      : document.createElement(el.type);
+
+  Object.keys(el.props).forEach((keys) => {
+    if (keys !== "children") {
+      dom[keys] = el.props[keys];
     }
-}
+  });
 
-//利用renden创建VDOm
-const renden = (el, root) => {
-    const dom = el.type == 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(el.type);
+  const children = el.props.children;
+  children.forEach((item) => {
+    render(item, dom);
+  });
 
-    Object.keys(el.props).forEach((keys) => {
-        if (keys !== "chilren") {
-            dom[keys] = el.props[keys]
-        }
-    })
-
-    const chilren = el.props.chilren
-    chilren.forEach((item => {
-        renden(item, dom)
-    }))
-
-    root.append(dom)
-}
+  root.append(dom);
+};
 
 const React = {
-    renden,
-    createElement
-}
+  render,
+  createElement,
+};
 
-export default React
+export default React;

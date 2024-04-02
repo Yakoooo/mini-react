@@ -1,9 +1,9 @@
-const createElement = (type, props, ...chilren) => {
+const createElement = (type, props, ...children) => {
     return {
         type: type,
         props: {
             ...props,
-            chilren: chilren.map((child) => {
+            children: children.map((child) => {
                 return typeof child == 'string' ? createTextNode(child) : child
             })
         },
@@ -14,31 +14,31 @@ const createTextNode = (text) => {
         type: 'TEXT_ELEMENT',
         props: {
             nodeValue: text,
-            chilren: []
+            children: []
         },
     }
 }
 
-//利用renden创建VDOm
-const renden = (el, root) => {
+//利用render创建VDOm
+const render = (el, root) => {
     const dom = el.type == 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(el.type);
 
     Object.keys(el.props).forEach((keys) => {
-        if (keys !== "chilren") {
+        if (keys !== "children") {
             dom[keys] = el.props[keys]
         }
     })
 
-    const chilren = el.props.chilren
-    chilren.forEach((item => {
-        renden(item, dom)
+    const children = el.props.children
+    children.forEach((item => {
+        render(item, dom)
     }))
 
     root.append(dom)
 }
 
 const React = {
-    renden,
+    render,
     createElement
 }
 
