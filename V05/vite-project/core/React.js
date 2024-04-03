@@ -75,12 +75,7 @@ const createDom = (type) => {
 const upDataProps = (dom, props) => {
   Object.keys(props).forEach((keys) => {
     if (keys !== "children") {
-      if (keys.startsWith("on")) {
-        const eventName = keys.toLowerCase().substring(2);
-        dom.addEventListener(eventName, props[keys]);
-      } else {
-        dom[keys] = props[keys];
-      }
+      dom[keys] = props[keys];
     }
   });
 };
