@@ -4,7 +4,8 @@ const createElement = (type, props, ...children) => {
     props: {
       ...props,
       children: children.map((child) => {
-        return typeof child == "string" ? createTextNode(child) : child;
+        const isTextNode = typeof child == "string" || typeof child == "number";
+        return isTextNode ? createTextNode(child) : child;
       }),
     },
   };
@@ -28,7 +29,6 @@ const render = (el, control) => {
     },
   };
   root = WorkUnit;
-  console.log(WorkUnit);
 };
 
 let root = null;
@@ -80,6 +80,9 @@ const upDataProps = (dom, props) => {
   });
 };
 
+//3 组成数据链接(按平级的数据链去算，就是只组成下一级的数据链。后续根据作用域会自己补齐)
+//3.1 链表的特点就是有父节点和子节点就能链接到一切节点 这里是靠子节点-父节点和兄弟节点
+//3.2 链表继承vDom的所有东西
 const initChildren = (work, children) => {
   let preWork = null;
   children.forEach((child, index) => {
@@ -100,36 +103,44 @@ const initChildren = (work, children) => {
   });
 };
 
+function upDataFunctionComponent(work) {
+  const children = [work.type(work.props)];
+  initChildren(work, children);
+}
+function upDataHookComponent(work) {
+  if (!work.dom) {
+    const dom = (work.dom = createDom(work.type));
+    // work.parent.dom.append(dom);
+    //2.处理props 挂载到 dom 上
+    upDataProps(dom, work.props);
+  }
+  const children = work.props.children;
+
+  initChildren(work, children);
+}
+
 // 执行任务将当前的任务执行起来
 function preFormWorkOfUnit(work) {
   const isFunctionComponent = typeof work.type === "function";
 
   //1 创建Dom
   //1.1 组件函数是不需要创建dom的
-  if (!isFunctionComponent) {
-    if (!work.dom) {
-      const dom = (work.dom = createDom(work.type));
-      // work.parent.dom.append(dom);
-
-      //2.处理props 挂载到 dom 上
-      upDataProps(dom, work.props);
-    }
+  if (isFunctionComponent) {
+    upDataFunctionComponent(work);
+  } else {
+    upDataHookComponent(work);
   }
-
-  //3 组成数据链接(按平级的数据链去算，就是只组成下一级的数据链。后续根据作用域会自己补齐)
-  //3.1 链表的特点就是有父节点和子节点就能链接到一切节点 这里是靠子节点-父节点和兄弟节点
-  //3.2 链表继承vDom的所有东西
-  const children = isFunctionComponent ? [work.type()] : work.props.children;
-  initChildren(work, children);
 
   //4.返回下一个任务
   if (work.child) {
     return work.child;
   }
-  if (work.siding) {
-    return work.siding;
+
+  let nextSiding = work;
+  while (nextSiding) {
+    if (nextSiding.siding) return nextSiding.siding;
+    nextSiding = nextSiding.parent;
   }
-  return work.parent?.siding;
 }
 
 requestIdleCallback(workLoop); //查询任务调度中的空闲时间
